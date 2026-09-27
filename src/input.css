@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Poppins nos títulos geométrica, "O" circular, mais próxima do
+     wordmark da JOVI. Inter no corpo. JetBrains Mono nos labels estilo HUD,
+     sem relação com a marca. */
+  --font-display: "Poppins", sans-serif;
+  --font-body: Inter, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* ink/surface/surface-alt/paper/ash usam variáveis CSS (definidas em
+     css/style.css) para poder trocar entre modo escuro e claro sem precisar
+     reescrever nenhuma classe Tailwind pelo HTML inteiro. No Tailwind v4 não
+     se usa mais o placeholder "<alpha-value>" do v3. o próprio motor gera a
+     variante de opacidade (ex.: bg-surface/95) via color-mix() automaticamente
+     em cima do valor base, então basta declarar a cor normalmente aqui. */
+  --color-ink: rgb(var(--jovi-ink));
+  --color-surface: rgb(var(--jovi-surface));
+  --color-surface-alt: rgb(var(--jovi-surface-alt));
+  --color-paper: rgb(var(--jovi-paper));
+  --color-ash: rgb(var(--jovi-ash));
+
+  /* Acentos (violet/indigo/mint/amber) trocam por tema. mesmo esquema do
+     ink/surface acima, usando as variáveis definidas em css/style.css. No
+     Lilás Boreal (claro) e no Azul Safira (escuro), violet/indigo já não são
+     só "a mesma cor com contraste ajustado": são as duas cores reais do
+     telefone JOVI V70, rosa lilás num modo, azul-índigo no outro. Mint e
+     amber continuam apenas ajustados por contraste (não têm ligação com um
+     tom do telefone). */
+  --color-violet: rgb(var(--jovi-violet));
+  --color-indigo: rgb(var(--jovi-indigo));
+  --color-mint: rgb(var(--jovi-mint));
+  --color-amber: rgb(var(--jovi-amber));
+
+  /* Antes fixo em rosa, agora acompanha a cor de acento ativa (azul no
+     Azul Safira, rosa no Lilás Boreal), já que o brilho fica embaixo dos
+     mesmos botões com gradiente from-violet to-indigo. */
+  --shadow-glow: 0 0 40px -8px color-mix(in oklab, var(--color-violet) 45%, transparent);
+}

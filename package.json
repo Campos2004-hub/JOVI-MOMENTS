@@ -1,0 +1,13 @@
+{
+  "name": "jovi-moments",
+  "version": "1.0.0",
+  "description": "JOVI Moments - Challenge FIAP ADS 2026 - Sprint 2",
+  "scripts": {
+    "build": "npx @tailwindcss/cli -i ./src/input.css -o ./css/tailwind.css"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}

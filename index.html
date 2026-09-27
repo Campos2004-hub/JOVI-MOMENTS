@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>JOVI Moments - Câmera Inteligente com IA</title>
+<meta name="description" content="Onde cada foto conta uma história e cada clique tem recompensa.">
+
+<!-- Fontes e Tailwind CSS compilados via Tailwind CLI (npm run build),
+     igual ao fluxo ensinado no curso não usamos mais o CDN. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="css/tailwind.css">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-ink text-paper font-body antialiased min-h-screen">
+
+  <!-- Biblioteca de ícones da marca: um único desenho (duas argolas concêntricas,
+       lembrando a lente de uma câmera, encaixa com o conceito da aplicação), reutilizado
+       via <use> em vez de repetir o SVG à mão em cada lugar, mantém a identidade
+       visual consistente. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <!-- Gradiente do símbolo, mesma paleta dos botões principais (violet →
+           indigo). Usa os tokens de tema (var(--color-*),
+           já theme-aware entre claro/escuro), não valores próprios: a logo
+           agora acompanha de propósito a cor de acento da interface. -->
+      <linearGradient id="joviCrescentGrad" x1="4" y1="4" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+        <stop stop-color="var(--color-violet)"/>
+        <stop offset="1" stop-color="var(--color-indigo)"/>
+      </linearGradient>
+    </defs>
+    <symbol id="jovi-lens" viewBox="0 0 40 40">
+      <circle cx="20" cy="20" r="15.5" fill="none" stroke="url(#joviCrescentGrad)" stroke-width="2"/>
+      <circle cx="20" cy="20" r="8.5" fill="none" stroke="url(#joviCrescentGrad)" stroke-width="5"/>
+    </symbol>
+  </svg>
+
+  <!-- Fundo decorativo: só visível fora da largura mobile, emoldura o "telefone" -->
+  <div id="app-background" class="fixed inset-0 -z-10"></div>
+
+  <!-- Frame da aplicação: mobile-first, centralizado em telas largas -->
+  <div id="app-frame" class="relative mx-auto w-full max-w-[430px] min-h-screen bg-ink sm:my-6 sm:min-h-[880px] sm:rounded-[2.5rem] sm:border sm:border-violet/10 sm:shadow-2xl overflow-hidden flex flex-col">
+
+    <!-- Header fixo -->
+    <header class="flex items-center justify-between px-5 pt-5 pb-3 shrink-0">
+      <div class="flex items-center gap-2">
+        <svg id="jovi-logo-static" width="28" height="28" viewBox="0 0 40 40">
+          <use href="#jovi-lens"/>
+        </svg>
+        <div>
+          <p class="font-display font-semibold text-sm leading-tight">JOVI Moments</p>
+          <p class="text-[10px] text-ash leading-tight" data-header-subtitle>Câmera Inteligente com IA</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 bg-surface-alt rounded-full px-3 py-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-mint"></span>
+          <span class="font-mono text-xs font-medium" data-points-display>0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Área de conteúdo das telas -->
+    <main class="flex-1 overflow-y-auto pb-24 px-5">
+
+      <!-- ===================== TELA: HOME ===================== -->
+      <section data-screen="home" class="screen space-y-5 pt-1">
+
+        <div class="text-center py-8">
+          <div id="home-ring-wrap" class="relative w-20 h-20 mx-auto mb-4">
+            <svg width="80" height="80" viewBox="0 0 40 40">
+              <use href="#jovi-lens"/>
+            </svg>
+          </div>
+          <p class="text-ash text-sm mb-1">Pronto para capturar?</p>
+          <h1 class="font-display text-2xl font-semibold mb-5">Abra a Câmera</h1>
+          <button data-nav="camera" class="bg-gradient-to-r from-violet to-indigo text-white font-display font-medium text-sm px-6 py-3 rounded-2xl shadow-glow active:scale-95 transition-transform inline-flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9a2 2 0 0 1 2-2h1.5l1-1.5h9l1 1.5H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            Abrir Câmera
+          </button>
+        </div>
+
+        <!-- Cards de status -->
+        <div class="grid grid-cols-3 gap-2.5">
+          <div class="bg-surface rounded-2xl p-3 text-center">
+            <p class="font-mono text-lg font-semibold text-mint" data-stat="points">0</p>
+            <p class="text-[11px] text-ash mt-0.5">JOVI Points</p>
+          </div>
+          <div class="bg-surface rounded-2xl p-3 text-center">
+            <p class="font-mono text-lg font-semibold text-violet" data-stat="level">Explorer</p>
+            <p class="text-[11px] text-ash mt-0.5">Seu nível</p>
+          </div>
+          <div class="bg-surface rounded-2xl p-3 text-center">
+            <p class="font-mono text-lg font-semibold text-amber" data-stat="streak">0</p>
+            <p class="text-[11px] text-ash mt-0.5">Dias seguidos</p>
+          </div>
+        </div>
+
+        <!-- Progresso -->
+        <div>
+          <p class="text-xs text-ash mb-2 px-1">Seu Progresso</p>
+          <div class="bg-surface rounded-2xl p-4 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-mint/15 flex items-center justify-center shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-mint)" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium" data-stat="level-name">Explorer</p>
+              <p class="text-xs text-ash" data-stat="level-points">0 pts totais</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Capturas recentes -->
+        <div>
+          <div class="flex items-center justify-between mb-2 px-1">
+            <p class="text-xs text-ash">Capturas Recentes</p>
+            <button data-nav="galeria" class="text-[11px] text-violet font-medium">Ver tudo</button>
+          </div>
+          <div data-recent-captures class="bg-surface rounded-2xl p-6 text-center">
+            <p class="text-sm text-ash">Nenhuma captura ainda</p>
+            <p class="text-xs text-ash/70 mt-1">Toque em <span class="text-paper">Abrir Câmera</span> para começar</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================== TELA: CÂMERA ===================== -->
+      <section data-screen="camera" class="screen hidden space-y-4 pt-1">
+        <div class="bg-surface rounded-3xl overflow-hidden aspect-[3/4] relative flex items-center justify-center">
+          <video id="camera-video" class="w-full h-full object-cover hidden" playsinline autoplay muted></video>
+          <canvas id="camera-canvas" class="hidden"></canvas>
+
+          <!-- Estado inicial: pedir permissão -->
+          <div id="camera-placeholder" class="text-center px-6">
+            <svg class="mx-auto mb-3 text-ash" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9a2 2 0 0 1 2-2h1.5l1-1.5h9l1 1.5H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            <p class="text-sm text-ash mb-4">Precisamos da sua câmera para começar</p>
+            <button id="btn-start-camera" class="bg-gradient-to-r from-violet to-indigo text-white text-sm font-medium px-5 py-2.5 rounded-xl">Ativar câmera</button>
+          </div>
+
+          <!-- Overlay de análise (elemento de assinatura: o anel do logo girando) -->
+          <div id="analyzing-overlay" class="hidden absolute inset-0 bg-ink/70 backdrop-blur-sm flex-col items-center justify-center gap-3">
+            <svg class="animate-spin-slow" width="56" height="56" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M28 8C22 4 12 6 8 14C4 22 8 32 16 34" stroke="url(#analyzeGrad)" stroke-width="4" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="analyzeGrad" x1="4" y1="6" x2="28" y2="34" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="var(--color-violet)"/><stop offset="1" stop-color="var(--color-mint)"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <p class="text-xs text-ash font-mono" id="analyzing-label">JOVI AI analisando cena...</p>
+          </div>
+        </div>
+
+        <!-- Controles da câmera -->
+        <div id="camera-controls" class="hidden items-center justify-center gap-6">
+          <button id="btn-switch-camera" class="w-11 h-11 rounded-full bg-surface flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+          </button>
+          <button id="btn-capture" class="w-16 h-16 rounded-full bg-white ring-4 ring-white/20 active:scale-90 transition-transform"></button>
+          <div class="w-11 h-11"></div>
+        </div>
+
+        <p class="text-center text-xs text-ash" id="camera-hint">A IA detecta o cenário e ajusta tudo automaticamente antes do clique.</p>
+      </section>
+
+      <!-- ===================== TELA: RESULTADO ===================== -->
+      <section data-screen="resultado" class="screen hidden space-y-4 pt-1">
+        <!-- Slider antes/depois: arraste pra comparar Original x resultado da IA.
+             O canvas SEM recorte (base) é o "result-canvas" (IA) a camada
+             recortada por cima é a "before-layer" (Original), revelada da
+             esquerda pra direita conforme o handle anda. Isso é o que faz
+             bater com os rótulos abaixo: Original à esquerda, IA à direita. -->
+        <div id="compare-wrap" class="bg-surface rounded-3xl overflow-hidden aspect-[3/4] relative select-none">
+          <canvas id="result-canvas" class="absolute inset-0 w-full h-full object-cover"></canvas>
+          <div id="before-layer" class="absolute inset-0 overflow-hidden" style="clip-path: inset(0 50% 0 0)">
+            <canvas id="before-canvas" class="w-full h-full object-cover"></canvas>
+          </div>
+
+          <span class="absolute top-3 left-3 bg-ink/70 backdrop-blur rounded-full px-3 py-1.5 text-[11px] font-mono">Original</span>
+          <div class="absolute top-3 right-3 bg-ink/70 backdrop-blur rounded-full px-3 py-1.5 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-mint animate-pulse"></span>
+            <span class="text-[11px] font-mono" id="result-label">Cenário detectado</span>
+          </div>
+
+          <div id="compare-handle" class="absolute top-0 bottom-0 w-0.5 bg-white/90 cursor-ew-resize touch-none" style="left: 50%">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0A0A10" stroke-width="2.5"><path d="m8 8-4 4 4 4M16 8l4 4-4 4"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-2xl p-4">
+          <p class="text-xs text-ash mb-2">Ajustes aplicados pela IA</p>
+          <div id="result-adjustments" class="space-y-2"></div>
+        </div>
+
+        <!-- Ajuste fino manual, refina o efeito automático da IA. Fica sempre
+             disponível (não é item de loja): o valor de cada slider é somado
+             por cima do filtro do cenário, não substitui a IA. -->
+        <div class="bg-surface rounded-2xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <p class="text-xs text-ash">Ajuste fino</p>
+            <button id="btn-reset-adjustments" class="text-[11px] text-violet font-medium active:opacity-60">Redefinir</button>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-sm">
+              <span>Brilho</span>
+              <span id="adj-brightness-value" class="font-mono text-xs text-ash">0%</span>
+            </div>
+            <input type="range" id="adj-brightness" class="jovi-slider has-center" min="-50" max="50" step="1" value="0">
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-sm">
+              <span>Tom</span>
+              <span id="adj-hue-value" class="font-mono text-xs text-ash">0°</span>
+            </div>
+            <input type="range" id="adj-hue" class="jovi-slider has-center" min="-45" max="45" step="1" value="0">
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-sm">
+              <span>Saturação</span>
+              <span id="adj-saturation-value" class="font-mono text-xs text-ash">0%</span>
+            </div>
+            <input type="range" id="adj-saturation" class="jovi-slider has-center" min="-50" max="50" step="1" value="0">
+          </div>
+        </div>
+
+        <!-- Correção manual, como no protótipo da Sprint 1: se a IA errou o
+             contexto, o usuário escolhe o certo e os efeitos são reaplicados -->
+        <div class="bg-surface rounded-2xl overflow-hidden">
+          <button id="btn-toggle-correction" class="w-full flex items-center justify-between p-3.5">
+            <span class="text-sm text-ash">Não era isso?</span>
+            <svg id="correction-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-ash transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="correction-grid-wrap" class="hidden px-3.5 pb-3.5">
+            <div id="correction-grid" class="grid grid-cols-3 gap-2"></div>
+          </div>
+        </div>
+
+        <!-- Moldura Premium, só aparece se o item foi resgatado na Loja -->
+        <button id="btn-toggle-frame" class="hidden w-full items-center justify-between bg-surface rounded-2xl p-3.5">
+          <span class="flex items-center gap-2 text-sm font-medium">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-violet)" stroke-width="2"><path d="M6 2v18M2 6h18M18 22V4M22 18H4"/></svg>
+            Moldura Premium
+          </span>
+          <span id="frame-toggle-indicator" class="w-9 h-5 rounded-full bg-white/10 relative transition-colors">
+            <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform"></span>
+          </span>
+        </button>
+
+        <!-- Filtros extras, só aparecem se o Pack de Filtros foi resgatado -->
+        <div id="extra-filters-wrap" class="hidden">
+          <p class="text-xs text-ash mb-2 px-1">Filtros Exclusivos</p>
+          <div id="extra-filters-row" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button id="btn-discard" class="bg-surface text-ash text-sm font-medium py-3 rounded-xl active:scale-95 transition-transform">Descartar</button>
+          <button id="btn-save" class="bg-gradient-to-r from-violet to-indigo text-white text-sm font-medium py-3 rounded-xl active:scale-95 transition-transform">Salvar na galeria</button>
+        </div>
+        <button id="btn-share-result" class="w-full flex items-center justify-center gap-2 bg-surface text-paper text-sm font-medium py-3 rounded-xl active:scale-95 transition-transform">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          Compartilhar
+        </button>
+      </section>
+
+      <!-- ===================== TELA: GALERIA ===================== -->
+      <section data-screen="galeria" class="screen hidden space-y-4 pt-1">
+        <div>
+          <p class="text-xs text-ash">Sua coleção</p>
+          <h1 class="font-display text-xl font-semibold">Galeria</h1>
+        </div>
+
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-ash" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="gallery-search" type="text" placeholder="Buscar por cenário..." class="w-full bg-surface rounded-xl pl-9 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet placeholder:text-ash">
+        </div>
+
+        <div id="gallery-filters" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+
+        <div id="gallery-grid" class="grid grid-cols-2 gap-2.5"></div>
+
+        <div id="gallery-empty" class="bg-surface rounded-2xl p-8 text-center">
+          <p class="text-sm text-ash">Nenhuma foto ainda</p>
+          <p class="text-xs text-ash/70 mt-1">Capture um momento para começar</p>
+        </div>
+      </section>
+
+      <!-- ===================== TELA: RANKING ===================== -->
+      <section data-screen="ranking" class="screen hidden space-y-4 pt-1">
+        <div>
+          <p class="text-xs text-ash">Global</p>
+          <h1 class="font-display text-xl font-semibold">Ranking</h1>
+        </div>
+
+        <div id="ranking-podium" class="flex items-end justify-center gap-4 py-4"></div>
+        <div id="ranking-list" class="space-y-1.5"></div>
+      </section>
+
+      <!-- ===================== TELA: PERFIL ===================== -->
+      <section data-screen="perfil" class="screen hidden space-y-4 pt-1">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs text-ash">Seu perfil</p>
+            <h1 class="font-display text-xl font-semibold">Perfil</h1>
+          </div>
+          <button id="btn-open-settings" class="w-9 h-9 rounded-full bg-surface flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" class="text-ash" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          </button>
+        </div>
+
+        <div class="bg-gradient-to-br from-violet/20 to-indigo/10 border border-violet/20 rounded-2xl p-4">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="relative shrink-0">
+              <div id="profile-avatar" class="w-12 h-12 rounded-full bg-gradient-to-br from-violet to-indigo flex items-center justify-center text-lg font-display font-semibold text-white">V</div>
+              <span id="avatar-charm" class="hidden absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface border-2 border-ink items-center justify-center text-[10px]">💎</span>
+            </div>
+            <div class="min-w-0">
+              <p class="font-medium text-sm truncate flex items-center gap-1.5">
+                <span data-profile="display-name">Você</span>
+                <svg id="badge-crown-icon" class="hidden shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="var(--color-amber)" stroke="var(--color-amber)" stroke-width="1"><path d="m2 20 2-10 5 4 3-8 3 8 5-4 2 10Z"/></svg>
+              </p>
+              <p class="text-xs text-ash" data-profile="level-name">Explorer</p>
+            </div>
+          </div>
+          <p class="text-xs text-ash" data-profile="points-total">0 pts totais</p>
+          <div class="grid grid-cols-3 gap-2 mt-3">
+            <div class="bg-ink/40 rounded-xl p-2 text-center">
+              <p class="font-mono text-sm font-semibold" data-profile="photo-count">0</p>
+              <p class="text-[10px] text-ash">Fotos</p>
+            </div>
+            <div class="bg-ink/40 rounded-xl p-2 text-center">
+              <p class="font-mono text-sm font-semibold" data-profile="share-count">0</p>
+              <p class="text-[10px] text-ash">Shares</p>
+            </div>
+            <div class="bg-ink/40 rounded-xl p-2 text-center">
+              <p class="font-mono text-sm font-semibold" data-profile="streak-count">0</p>
+              <p class="text-[10px] text-ash">Dias</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking Global resumido -->
+        <div class="bg-surface rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-xs text-ash">Ranking Global</p>
+            <button data-nav="ranking" class="text-[11px] text-violet font-medium">Ver ranking</button>
+          </div>
+          <p class="font-display text-lg font-semibold" data-profile="global-rank">#—</p>
+          <p class="text-[11px] text-ash mb-3" data-profile="rank-context">Capture fotos para entrar no ranking</p>
+          <button id="btn-share-ranking" class="w-full flex items-center justify-center gap-2 bg-surface-alt text-paper text-xs font-medium py-2.5 rounded-xl active:scale-95 transition-transform">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+            Compartilhar ranking
+          </button>
+        </div>
+
+        <!-- Categoria favorita -->
+        <div class="bg-surface rounded-2xl p-4 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-amber/15 flex items-center justify-center shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-amber)" stroke-width="2"><path d="M12 2 9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1Z"/></svg>
+          </div>
+          <div>
+            <p class="text-xs text-ash">Categoria Favorita</p>
+            <p class="text-sm font-medium" data-profile="favorite-category">Nenhuma — seu contexto mais usado pela IA</p>
+          </div>
+        </div>
+
+        <!-- Grade de categorias -->
+        <div>
+          <p class="text-xs text-ash mb-2 px-1">Categorias</p>
+          <div id="profile-categories" class="grid grid-cols-3 gap-2"></div>
+        </div>
+
+        <button data-nav="loja" class="w-full bg-surface rounded-2xl p-4 flex items-center justify-between active:scale-[0.98] transition-transform">
+          <span class="flex items-center gap-2 text-sm font-medium">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-violet)" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6Z"/></svg>
+            Loja JOVI
+          </span>
+          <svg width="16" height="16" viewBox="0 0 24 24" class="text-ash" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+
+        <button data-nav="conquistas" class="w-full bg-surface rounded-2xl p-4 flex items-center justify-between active:scale-[0.98] transition-transform">
+          <span class="flex items-center gap-2 text-sm font-medium">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-amber)" stroke-width="2"><path d="M12 2 9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1Z"/></svg>
+            Conquistas
+          </span>
+          <span class="flex items-center gap-2">
+            <span class="text-xs font-mono text-ash" data-profile="badges-fraction">0/0</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" class="text-ash" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </span>
+        </button>
+      </section>
+
+      <!-- ===================== TELA: CONQUISTAS ===================== -->
+      <section data-screen="conquistas" class="screen hidden space-y-4 pt-1">
+        <div class="flex items-center gap-3">
+          <button data-nav="perfil" class="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div>
+            <p class="text-xs text-ash">Conquistas</p>
+            <h1 class="font-display text-xl font-semibold">Badges</h1>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-violet to-indigo rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-white/70">Conquistas desbloqueadas</p>
+            <p class="font-mono text-2xl font-semibold text-white" data-conquistas="fraction">0/0</p>
+            <div class="flex gap-4 mt-2">
+              <div>
+                <p class="text-[10px] text-white/70">Saldo</p>
+                <p class="font-mono text-sm text-white" data-conquistas="balance">0 pts</p>
+              </div>
+              <div>
+                <p class="text-[10px] text-white/70">Total ganho</p>
+                <p class="font-mono text-sm text-white" data-conquistas="total-earned">0 pts</p>
+              </div>
+            </div>
+          </div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 2 9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1Z"/></svg>
+        </div>
+
+        <div>
+          <p class="text-xs text-ash mb-2 px-1">Histórico de Pontos</p>
+          <div id="points-history" class="space-y-1.5"></div>
+        </div>
+
+        <div>
+          <p class="text-xs text-ash mb-2 px-1">Todas as Conquistas</p>
+          <div id="all-badges" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- ===================== TELA: LOJA ===================== -->
+      <section data-screen="loja" class="screen hidden space-y-4 pt-1">
+        <div class="flex items-center gap-3">
+          <button data-nav="perfil" class="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div>
+            <p class="text-xs text-ash">Loja</p>
+            <h1 class="font-display text-xl font-semibold">JOVI Store</h1>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-violet to-indigo rounded-2xl p-4 flex items-center justify-between">
+          <div>
+            <p class="text-xs text-white/70">Seu saldo</p>
+            <p class="font-mono text-2xl font-semibold text-white" data-store="balance">0 pts</p>
+          </div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><circle cx="16" cy="16" r="6"/></svg>
+        </div>
+
+        <div id="store-filters" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+
+        <div id="store-items" class="space-y-2.5"></div>
+      </section>
+
+    </main>
+
+    <!-- Toast global de feedback (compartilhar / copiar / etc.) fica FORA das
+         telas de propósito, senão fica escondido junto com a tela que estiver oculta.
+         Centralizado via flexbox (justify-center num wrapper full-width), que é o
+         método mais confiável entre navegadores, mais robusto que left/right +
+         margin:auto ou left-1/2 + translate, que já se mostraram frágeis em
+         alguns navegadores embutidos (ex.: o do WhatsApp). -->
+    <div id="jovi-toast-wrap" class="hidden absolute inset-x-0 bottom-24 z-50 flex justify-center px-5 pointer-events-none">
+      <div id="jovi-toast" class="pointer-events-auto bg-surface-alt border border-white/10 text-paper text-xs font-medium px-4 py-2.5 rounded-full shadow-xl whitespace-nowrap"></div>
+    </div>
+
+    <!-- Toast de conquista desbloqueada, substitui o alert() nativo do navegador.
+         Mesma técnica de centralização por flexbox descrita acima. -->
+    <div id="achievement-toast-wrap" class="hidden absolute inset-x-0 top-4 z-50 flex justify-center px-5 pointer-events-none">
+      <div id="achievement-toast" class="pointer-events-auto w-full max-w-[380px] cursor-pointer">
+        <div class="bg-gradient-to-r from-violet to-indigo rounded-2xl p-3.5 flex items-center gap-3 shadow-2xl">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2 9 9l-7 1 5 5-1.5 7L12 18l6.5 4L17 15l5-5-7-1Z"/></svg>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] text-white/80 font-medium">Conquista desbloqueada!</p>
+            <p id="achievement-toast-name" class="text-sm font-semibold text-white truncate">Nome da conquista</p>
+          </div>
+          <span id="achievement-toast-points" class="font-mono text-sm text-white shrink-0">+0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualizador de foto em tela cheia (com navegação entre fotos) -->
+    <div id="photo-viewer" class="hidden absolute inset-0 bg-ink z-50 flex flex-col">
+      <div class="flex items-center justify-between p-4 shrink-0">
+        <button id="btn-close-viewer" class="w-9 h-9 rounded-full bg-surface-alt flex items-center justify-center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+        <span id="viewer-label" class="text-xs font-mono text-ash"></span>
+        <button id="btn-share-viewer" class="w-9 h-9 rounded-full bg-surface-alt flex items-center justify-center">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+        </button>
+      </div>
+      <div class="flex-1 flex items-center justify-center relative overflow-hidden px-2">
+        <img id="viewer-image" class="max-w-full max-h-full object-contain rounded-lg" src="" alt="">
+        <button id="btn-viewer-prev" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-ink/70 backdrop-blur flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button id="btn-viewer-next" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-ink/70 backdrop-blur flex items-center justify-center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Painel de Perfil do Ranking (mock sem backend, mas dá pra ver mais
+         sobre cada posição em vez de uma lista estática e morta) -->
+    <div id="ranking-profile-panel" class="hidden absolute inset-0 bg-ink/80 backdrop-blur-sm z-40 flex items-end">
+      <div class="w-full bg-surface rounded-t-3xl p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-display font-semibold">Perfil</h2>
+          <button id="btn-close-ranking-profile" class="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="rp-avatar" class="w-14 h-14 rounded-full bg-gradient-to-br from-violet to-indigo flex items-center justify-center text-2xl shrink-0">🙂</div>
+          <div class="min-w-0">
+            <p id="rp-name" class="font-medium text-base truncate">Nome</p>
+            <p id="rp-tag" class="text-xs text-ash">Tag</p>
+          </div>
+        </div>
+        <p id="rp-bio" class="text-sm text-ash"></p>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-surface-alt rounded-xl p-3 text-center">
+            <p id="rp-points" class="font-mono text-sm font-semibold">0</p>
+            <p class="text-[10px] text-ash">Pontos</p>
+          </div>
+          <div class="bg-surface-alt rounded-xl p-3 text-center">
+            <p id="rp-badges" class="font-mono text-sm font-semibold">0</p>
+            <p class="text-[10px] text-ash">Conquistas</p>
+          </div>
+          <div class="bg-surface-alt rounded-xl p-3 text-center">
+            <p id="rp-since" class="font-mono text-xs font-semibold">—</p>
+            <p class="text-[10px] text-ash">Desde</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel de Configurações (modal simples) -->
+    <div id="settings-panel" class="hidden absolute inset-0 bg-ink/80 backdrop-blur-sm z-40 flex items-end">
+      <div class="w-full bg-surface rounded-t-3xl p-5 space-y-3">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-display font-semibold">Configurações</h2>
+          <button id="btn-close-settings" class="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div>
+          <label class="text-xs text-ash mb-1.5 block">Nome de exibição</label>
+          <input id="input-display-name" type="text" maxlength="20" placeholder="Você" class="w-full bg-surface-alt rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-violet">
+        </div>
+        <div>
+          <p class="text-xs text-ash mb-1.5">Avatar</p>
+          <div id="avatar-picker" class="flex flex-wrap gap-2"></div>
+        </div>
+        <button id="btn-toggle-theme" class="w-full flex items-center justify-between bg-surface-alt rounded-xl px-3 py-2.5">
+          <span class="flex items-center gap-2 text-sm">
+            <svg id="theme-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path id="theme-icon-path" d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <span id="theme-toggle-label">Azul Safira</span>
+          </span>
+          <span id="theme-toggle-indicator" class="w-9 h-5 rounded-full bg-violet relative transition-colors">
+            <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform" style="transform: translateX(16px)"></span>
+          </span>
+        </button>
+        <button id="btn-save-settings" class="w-full bg-gradient-to-r from-violet to-indigo text-white text-sm font-medium py-3 rounded-xl mt-2">Salvar</button>
+        <button id="btn-reset-progress" class="w-full text-red-400 text-xs font-medium py-2">Zerar progresso</button>
+      </div>
+    </div>
+
+    <!-- Navegação inferior fixa -->
+    <nav class="absolute bottom-0 left-0 right-0 bg-surface/95 backdrop-blur border-t border-white/5 px-2 py-2.5 flex items-center justify-around">
+      <button data-nav="home" class="nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+        <span class="text-[10px]">Início</span>
+      </button>
+      <button data-nav="galeria" class="nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        <span class="text-[10px]">Galeria</span>
+      </button>
+      <button data-nav="camera" class="nav-btn-camera flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-violet to-indigo -mt-3 shadow-glow active:scale-90 transition-transform">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 9a2 2 0 0 1 2-2h1.5l1-1.5h9l1 1.5H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      </button>
+      <button data-nav="ranking" class="nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M17 6h3a2 2 0 0 1-2 5M7 6H4a2 2 0 0 0 2 5"/></svg>
+        <span class="text-[10px]">Ranking</span>
+      </button>
+      <button data-nav="perfil" class="nav-btn flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <span class="text-[10px]">Perfil</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/gamification.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

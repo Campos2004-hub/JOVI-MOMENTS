@@ -1,0 +1,243 @@
+/* ===== Variáveis de tema, dois modos nomeados pelas cores reais do JOVI
+   V70: "Lilás Boreal" (claro, padrão) e "Azul Safira" (escuro) =====
+   Formato "R G B" (sem vírgulas) para funcionar com o padrão do Tailwind
+   rgb(var(--x) / <alpha-value>), que permite opacidade dinâmica (bg-surface/95).
+   As cores de acento (violet/indigo/mint/amber) também trocam por tema: o
+   Azul Safira usa um azul-índigo, o Lilás Boreal um rosa. cores diferentes,
+   não só uma variação clara/escura da mesma cor. */
+:root {
+  --jovi-ink: 10 10 16;
+  --jovi-surface: 21 20 31;
+  --jovi-surface-alt: 30 29 43;
+  --jovi-paper: 243 242 248;
+  --jovi-ash: 154 152 172;
+  --jovi-violet: 104 106 204;
+  --jovi-indigo: 47 48 108;
+  --jovi-mint: 47 230 184;
+  --jovi-amber: 245 166 35;
+}
+
+html.light {
+  --jovi-ink: 245 244 250;
+  --jovi-surface: 255 255 255;
+  --jovi-surface-alt: 236 234 245;
+  --jovi-paper: 22 21 31;
+  --jovi-ash: 100 98 122;
+  --jovi-violet: 138 11 163;
+  --jovi-indigo: 98 8 115;
+  --jovi-mint: 11 126 97;
+  --jovi-amber: 170 107 3;
+}
+
+/* ===== Base ===== */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  /* pan-x pan-y (em vez de "manipulation") é o valor que de fato bloqueia o
+     pinch-zoom nativo do Safari, "manipulation" na verdade PERMITE pinch-zoom,
+     só desativa o double-tap-zoom. O iOS também ignora "user-scalable=no" do
+     viewport desde a v10 (decisão da Apple por acessibilidade), então o
+     bloqueio real de zoom precisa vir daqui, do touch-action por elemento. */
+  touch-action: pan-x pan-y;
+}
+
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Reforça o bloqueio de pinch-zoom nos containers onde o toque realmente
+   acontece (o navegador calcula o gesto a partir do elemento tocado, então
+   não basta declarar isso só em html/body) */
+#app-frame, #camera-video, #camera-canvas, #result-canvas, main {
+  touch-action: pan-x pan-y;
+}
+.nav-btn {
+  color: rgb(var(--jovi-ash));
+}
+
+.nav-btn.active {
+  color: rgb(var(--jovi-paper));
+}
+
+.nav-btn.active svg {
+  filter: drop-shadow(0 0 6px color-mix(in oklab, var(--color-violet) 60%, transparent));
+  stroke: var(--color-violet);
+}
+
+/* ===== Esconder scrollbar (filtros da galeria) ===== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== Animação: anel do logo girando (análise de IA) ===== */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 1.4s linear infinite;
+}
+
+/* ===== Transição entre telas ===== */
+.screen {
+  animation: screen-enter 0.28s ease both;
+}
+@keyframes screen-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Respeita preferência de movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  .screen, .animate-spin-slow {
+    animation: none !important;
+  }
+}
+
+/* ===== Slider antes/depois: a implementação real vive em #compare-wrap,
+   #after-layer e #compare-handle (IDs) no HTML + app.js.  ===== */
+
+/* ===== Badge de conquista bloqueada ===== */
+.badge-locked {
+  filter: grayscale(1);
+  opacity: 0.35;
+}
+
+/* ===== Fundo decorativo do app (fora do "telefone" em telas largas) ===== */
+#app-background {
+  background: radial-gradient(ellipse at top, rgb(var(--jovi-surface-alt)) 0%, rgb(var(--jovi-ink)) 60%);
+}
+
+/* ===== Wallpaper Animado (item da loja) gradiente sutil em movimento ===== */
+@keyframes wallpaper-drift {
+  0%, 100% { background-position: 50% 0%; }
+  50% { background-position: 50% 25%; }
+}
+#app-background.wallpaper-animated {
+  background-image: radial-gradient(ellipse at top, rgb(var(--jovi-surface-alt)) 0%, rgb(var(--jovi-ink)) 35%, rgb(var(--jovi-ink)) 65%);
+  background-size: 100% 160%;
+  animation: wallpaper-drift 12s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  #app-background.wallpaper-animated { animation: none; }
+}
+
+/* ===== Ajuste fino (sliders de brilho/tom/saturação na tela de resultado) =====
+   Estilização manual em vez de plugin do Tailwind pro <input type="range">,
+   já que o motor nativo (-webkit-slider-thumb / -moz-range-thumb) exige
+   pseudo-elementos que o Tailwind v4 não cobre com utilitárias puras. */
+.jovi-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(var(--jovi-surface-alt));
+  outline: none;
+  touch-action: pan-y;
+}
+.jovi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-violet);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-violet) 18%, transparent);
+  cursor: pointer;
+  margin-top: -7px;
+}
+.jovi-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-violet);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-violet) 18%, transparent);
+  cursor: pointer;
+}
+.jovi-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(var(--jovi-surface-alt));
+}
+/* Ponto central sutil (0%/0°) pra sinalizar visualmente onde é o "neutro" */
+.jovi-slider.has-center {
+  background-image: linear-gradient(rgb(var(--jovi-ash)), rgb(var(--jovi-ash)));
+  background-size: 2px 8px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ===== Hover / fluidez =====
+   O site da JOVI usa micro-interação de "crescer" ao passar o mouse em quase
+   tudo. Aplicado aqui via seletor genérico (em vez de "hover:" repetido em
+   cada botão do HTML) porque boa parte da interface,  itens da loja, grade
+   da galeria, lista de ranking, lista de conquistas,  é renderizada
+   dinamicamente pelo JS a cada chamada de render*(), então uma classe fixa
+   no HTML estático não cobriria esses elementos.
+   @media (hover: hover) restringe isso a dispositivos com mouse de verdade:
+   em touch (o uso real do app, no celular) esse estado não existe, então
+   não faz sentido nem arriscar um hover "grudado" após o toque. */
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled) {
+    transition: filter 0.15s ease, transform 0.15s ease;
+  }
+  button:not(:disabled):hover {
+    filter: brightness(1.1);
+  }
+
+  /* CTAs principais em gradiente ganham um crescimento mais perceptível 
+     mesma sensação do hero "200 MP" no site oficial */
+  [data-nav="camera"]:hover,
+  #btn-capture:hover,
+  #btn-save:hover,
+  #btn-save-settings:hover,
+  #btn-start-camera:hover,
+  #btn-share-result:hover,
+  .nav-btn-camera:hover {
+    transform: scale(1.05);
+  }
+
+  .nav-btn:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Cards de lista renderizados via JS: loja, galeria, ranking, conquistas */
+  #store-items > div,
+  #gallery-grid > div,
+  #ranking-list > button,
+  #all-badges > div {
+    transition: transform 0.15s ease, background-color 0.15s ease;
+  }
+  #store-items > div:hover,
+  #gallery-grid > div:hover,
+  #ranking-list > button:hover,
+  #all-badges > div:hover {
+    transform: translateY(-2px);
+    background-color: rgb(var(--jovi-surface-alt));
+  }
+}
+
+/* ===== Toast de conquista =====
+   Centralização horizontal fica a cargo do wrapper flex (#achievement-toast-wrap,
+   com justify-center)  esta animação cuida só da entrada vertical + fade.
+   Nunca usar translateX(-50%) aqui: desloca o elemento em metade da própria
+   largura e só faz sentido combinado com "left: 50%", que não é usado nesta
+   técnica de centralização. */
+@keyframes achievement-enter {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#achievement-toast:not(.hidden) {
+  animation: achievement-enter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  #achievement-toast:not(.hidden) { animation: none; }
+}
